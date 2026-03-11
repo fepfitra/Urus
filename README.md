@@ -77,7 +77,7 @@ cmake --install build
 
 ### Hello World
 
-```urus
+```rust
 fn main(): void {
     print("Hello, World!");
 }
@@ -107,7 +107,7 @@ urusc hello.urus -o hello
 
 ### Variables
 
-```urus
+```rust
 let x: int = 10;           // immutable
 let mut count: int = 0;    // mutable
 count += 1;
@@ -115,7 +115,7 @@ count += 1;
 
 ### Functions
 
-```urus
+```rust
 fn add(a: int, b: int): int {
     return a + b;
 }
@@ -127,7 +127,7 @@ fn greet(name: str) {
 
 ### Control Flow
 
-```urus
+```rust
 // If / Else
 if x > 10 {
     print("big");
@@ -155,10 +155,11 @@ for name in names {
     print(name);
 }
 ```
+> The parentheses in the condition are optional. Example: `if (condition) { ... }`
 
 ### Structs
 
-```urus
+```rust
 struct Point {
     x: float;
     y: float;
@@ -173,7 +174,7 @@ fn distance(a: Point, b: Point): float {
 
 ### Enums & Pattern Matching
 
-```urus
+```rust
 enum Shape {
     Circle(r: float);
     Rect(w: float, h: float);
@@ -198,7 +199,7 @@ fn area(s: Shape): float {
 
 ### Arrays
 
-```urus
+```rust
 let nums: [int] = [1, 2, 3, 4, 5];
 let first: int = nums[0];
 
@@ -209,15 +210,22 @@ print(f"Length: {len(items)}");
 
 ### String Interpolation
 
-```urus
+```rust
 let name: str = "World";
 let count: int = 42;
 print(f"Hello {name}! Answer: {count}");
 ```
 
+### Default parameters value
+```rust
+fn greet(name: str = "John-fried") {
+    print(f"Hello there {name}");
+}
+```
+
 ### Modules / Imports
 
-```urus
+```rust
 // math_utils.urus
 fn square(x: int): int {
     return x * x;
@@ -233,7 +241,7 @@ fn main(): void {
 
 ### Error Handling (Result Type)
 
-```urus
+```rust
 fn divide(a: int, b: int): Result<int, str> {
     if b == 0 {
         return Err("division by zero");
@@ -349,26 +357,39 @@ Example:
 
 ## Architecture
 
-```
-Source (.urus)
-     |
-     v
-  [ Lexer ]       Tokenize source code
-     |
-     v
-  [ Parser ]      Build Abstract Syntax Tree
-     |
-     v
-  [ Sema ]        Type checking & semantic analysis
-     |
-     v
-  [ Codegen ]     Generate standard C11 code
-     |
-     v
-  [ GCC ]         Compile to native binary
-     |
-     v
-  Executable
+```mermaid
+graph TD
+    %% Nodes definition
+    A([📄 Source .urus])
+    B[Lexer]
+    C[Parser]
+    D[Sema]
+    E[Codegen]
+    F[GCC]
+    G([🚀 Executable])
+
+    %% Flow
+    A --> B --> C --> D --> E --> F --> G
+
+    %% Styling for Dark Mode Contrast
+    style A fill:#238636,stroke:#2ea043,color:#fff
+    style B fill:#161b22,stroke:#58a6ff,color:#58a6ff
+    style C fill:#161b22,stroke:#58a6ff,color:#58a6ff
+    style D fill:#161b22,stroke:#58a6ff,color:#58a6ff
+    style E fill:#161b22,stroke:#58a6ff,color:#58a6ff
+    style F fill:#161b22,stroke:#d2a8ff,color:#d2a8ff
+    style G fill:#238636,stroke:#2ea043,color:#fff
+
+    %% Sub-text inside nodes (Ramping)
+    subgraph Legend [Process Flow]
+    direction LR
+    B --- B1[Tokenize]
+    C --- C1[AST]
+    D --- D1[Type Check]
+    E --- E1[C11 Code]
+    end
+    
+    style Legend fill:none,stroke:none,color:#8b949e
 ```
 
 ---
@@ -405,102 +426,38 @@ run_tests.bat ..\compiler\build\Release\urusc.exe
 
 ## Repository Structure
 
-```
+```yaml
 Urus/
-|
-|-- compiler/                   # Compiler source code
-|   |-- src/                    # Implementation (.c)
-|   |   |-- main.c             # CLI entry point & import resolver
-|   |   |-- lexer.c            # Tokenizer
-|   |   |-- parser.c           # Recursive descent parser
-|   |   |-- sema.c             # Semantic analysis & type checking
-|   |   |-- codegen.c          # C11 code generator
-|   |   |-- ast.c              # AST node constructors
-|   |   |-- error.c            # Error reporting with source context
-|   |   '-- util.c             # File reading utilities
-|   |
-|   |-- include/               # Headers (.h)
-|   |   |-- ast.h              # AST node definitions
-|   |   |-- token.h            # Token types & definitions
-|   |   |-- lexer.h            # Lexer interface
-|   |   |-- parser.h           # Parser interface
-|   |   |-- sema.h             # Semantic analysis interface
-|   |   |-- codegen.h          # Code generator interface
-|   |   |-- error.h            # Error reporting interface
-|   |   |-- util.h             # Utility functions
-|   |   '-- urus_runtime.h     # Runtime library (embedded in binary)
-|   |
-|   |-- cmake/
-|   |   '-- embed-string.cmake # Embeds runtime header into binary
-|   |
-|   '-- CMakeLists.txt         # Build configuration
-|
-|-- examples/                   # Sample programs
-|   |-- hello.urus             # Hello world
-|   |-- fibonacci.urus         # Fibonacci sequence
-|   |-- structs.urus           # Struct usage
-|   |-- arrays.urus            # Array operations
-|   |-- enums.urus             # Enums & pattern matching
-|   |-- strings.urus           # String operations
-|   |-- result.urus            # Error handling with Result
-|   |-- files.urus             # File I/O
-|   '-- modules/               # Multi-file import example
-|       |-- main.urus
-|       '-- math_utils.urus
-|
-|-- tests/
-|   |-- valid/                  # Programs that should compile
-|   |   |-- hello.urus
-|   |   '-- stdlib_test.urus
-|   |
-|   |-- invalid/               # Programs that should be rejected
-|   |   |-- bad_return.urus
-|   |   |-- break_outside_loop.urus
-|   |   |-- duplicate_var.urus
-|   |   |-- immutable.urus
-|   |   |-- type_mismatch.urus
-|   |   |-- undefined_var.urus
-|   |   |-- wrong_arg_count.urus
-|   |   '-- parser/
-|   |       '-- unclosed_brace.urus
-|   |
-|   |-- run/                    # Compile + run + check output
-|   |   |-- hello.urus          + hello.expected
-|   |   |-- arithmetic.urus     + arithmetic.expected
-|   |   |-- arrays.urus         + arrays.expected
-|   |   |-- foreach.urus        + foreach.expected
-|   |   |-- functions.urus      + functions.expected
-|   |   |-- if_else.urus        + if_else.expected
-|   |   |-- loops.urus          + loops.expected
-|   |   |-- strings.urus        + strings.expected
-|   |   |-- structs.urus        + structs.expected
-|   |   '-- variables.urus      + variables.expected
-|   |
-|   |-- run_tests.sh            # Test runner (Linux/macOS)
-|   '-- run_tests.bat           # Test runner (Windows)
-|
-|-- documentation/              # Full project documentation
-|   |-- overview/
-|   |-- architecture/
-|   |-- installation/
-|   |-- usage/
-|   |-- configuration/
-|   |-- api-reference/
-|   |-- development-guide/
-|   |-- security/
-|   |-- roadmap/
-|   |-- changelog/
-|   |-- diagrams/
-|   '-- decisions/              # Architectural Decision Records
-|
-|-- SPEC.md                     # Language specification & grammar
-|-- CHANGELOG.md                # Version history
-|-- Diary/                      # Development notes & complaints
-|-- CODE_OF_CONDUCT.md          # Community guidelines
-|-- CONTRIBUTING.md             # Contribution guide
-|-- SECURITY.md                 # Security policy
-|-- Dockerfile                  # Container build
-'-- LICENSE                     # Apache 2.0
+├── compiler/                  # Compiler source code
+│   ├── src/                   # Implementation (.c)
+│   │   ├── main.c             # CLI entry point
+│   │   ├── lexer.c            # Tokenizer
+│   │   ├── parser.c           # Recursive descent parser
+│   │   ├── sema.c             # Semantic analysis
+│   │   ├── codegen.c          # C11 code generator
+│   │   ├── ast.c              # AST node constructors
+│   │   ├── error.c            # Error reporting
+│   │   └── util.c             # File/string utilities
+│   ├── include/               # Headers (.h)
+│   │   ├── ast.h              # AST definitions
+│   │   ├── token.h            # Token types
+│   │   ├── lexer.h            # Lexer interface
+│   │   ├── parser.h           # Parser interface
+│   │   ├── sema.h             # Sema interface
+│   │   ├── codegen.h          # Codegen interface
+│   │   ├── error.h            # Error interface
+│   │   ├── util.h             # Utility functions
+│   │   └── urus_runtime.h     # Embedded runtime library
+│   ├── cmake/                 # Build automation scripts
+│   └── CMakeLists.txt         # Main build configuration
+├── examples/                  # Sample programs (.urus)
+├── tests/                     # Test suite & runners
+├── documentation/             # Detailed project docs
+├── SPEC.md                    # Language spec & grammar
+├── CHANGELOG.md               # Version history
+├── Diary/                     # Dev notes & complaints
+├── Dockerfile                 # Containerized build
+└── LICENSE                    # Apache 2.0
 ```
 
 ---
@@ -524,9 +481,9 @@ Urus/
 ## Roadmap
 
 ### V0.3/1 — Quality of Life
-- Default parameter values
+- ~~Default parameter values~~
 - ~~Better error messages with source context~~ *(Done in V0.2/2)*
-- Warning system (unused variables, etc.)
+- ~~Warning system (unused variables, etc.)~~
 - Multi-line string literals
 
 ### V0.4/1 — Type System

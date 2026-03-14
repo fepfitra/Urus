@@ -21,9 +21,9 @@ typedef struct {
     urus_dtor_fn dtor;
 } urus_temp_obj;
 
-#define URUS_POOL_MAX 8192
-static urus_temp_obj _urus_pool[URUS_POOL_MAX];
-static int _urus_pool_count;
+static urus_temp_obj *_urus_pool = NULL;
+static int _urus_pool_count = 0;
+static int _urus_pool_cap = 0;
 
 static void urus_retain(void *ptr) {
     if (ptr) {
@@ -33,7 +33,11 @@ static void urus_retain(void *ptr) {
 }
 
 static void *urus_autorelease(void *ptr, urus_dtor_fn dtor) {
-    if (dtor && _urus_pool_count < URUS_POOL_MAX) {
+    if (dtor) {
+            if (_urus_pool_count >= _urus_pool_cap) {
+                _urus_pool_cap = (_urus_pool_cap == 0) ? 256 : _urus_pool_cap * 2;
+                _urus_pool = realloc(_urus_pool, _urus_pool_cap * sizeof(urus_temp_obj));
+            }
             _urus_pool[_urus_pool_count].ptr = ptr;
             _urus_pool[_urus_pool_count].dtor = dtor;
             _urus_pool_count++;
@@ -195,6 +199,7 @@ typedef struct {
 
 static urus_array *urus_array_new(size_t elem_size, size_t initial_cap, urus_dtor_fn elem_dtor);
 static void urus_array_push(urus_array *arr, const void *elem);
+static void urus_array_release(urus_array *a);
 
 // Forward declare for str_split
 static urus_array *urus_str_split(urus_str *s, urus_str *delim) {
@@ -226,7 +231,7 @@ static urus_array *urus_array_new(size_t elem_size, size_t initial_cap, urus_dto
     arr->elem_size = elem_size;
     arr->elem_dtor = elem_dtor;
     arr->data = malloc(arr->elem_size * arr->cap);
-    return arr;
+    return (urus_array *)urus_autorelease(arr, (urus_dtor_fn)urus_array_release);
 }
 
 static void urus_array_retain(urus_array *a) { if (a) a->rc++; }
@@ -235,12 +240,12 @@ static void urus_array_release(urus_array *a) {
     if (a->rc && --a->rc <= 0) {
         if (a->elem_dtor) {
             for (size_t i = 0; i < a->len; i++) {
-                void **elem_ptr = (void **)((char*)a->data + i + a->elem_size);
-                if (*elem_ptr) a->elem_dtor(*elem_ptr);
+                void *elem = *(void **)((char*)a->data + (i * a->elem_size));
+                urus_release(elem, a->elem_dtor);
             }
         }
         free(a->data);
-        free(a);
+        free(a); // free parent
     }
 }
 
@@ -249,7 +254,14 @@ static void urus_array_push(urus_array *arr, const void *elem) {
         arr->cap *= 2;
         arr->data = realloc(arr->data, arr->elem_size * arr->cap);
     }
-    memcpy((char *)arr->data + arr->len * arr->elem_size, elem, arr->elem_size);
+    void *target = (char *)arr->data + (arr->len * arr->elem_size);
+    memcpy(target, elem, arr->elem_size);
+
+    if (arr->elem_dtor) {
+        void *obj = (void **)elem;
+        urus_retain(obj);
+    }
+
     arr->len++;
 }
 

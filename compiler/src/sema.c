@@ -455,6 +455,7 @@ static AstType *check_expr(Sema *ctx, AstNode *node) {
         for (int i = 0; i < sym->variant_count; i++) {
             if (strcmp(sym->variants[i].name, vname) == 0) {
                 variant = &sym->variants[i];
+                sym->is_referenced = true;
                 break;
             }
         }

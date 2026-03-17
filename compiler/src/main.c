@@ -203,7 +203,12 @@ static void show_help(char *progname) {
         "  --tokens    Display Lexer tokens\n"
         "  --ast       Display the Abstract Syntax Tree (AST)\n"
         "  --emit-c    Print generated C code to stdout\n"
-        "  -o <file>   Specify output executable name (default: a.out on Linux, a.exe on Windows)\n\n"
+        "  -o <file>   Specify output executable name (default: "
+#ifdef _WIN32
+        "a.exe)\n\n"
+#else
+        "a.out)\n\n"
+#endif
         "Example:\n"
         "  %s main.urus -o app \n", progname, progname
     );

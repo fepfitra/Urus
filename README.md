@@ -64,7 +64,7 @@ cd Urus/compiler
 cmake -S . -B build/
 cmake --build build/
 ```
-if you're using **Termux**:
+> if you're using **Termux**:
 ```bash
 cmake -S . -B build/ -DCMAKE_INSTALL_PREFIX=$PREFIX
 cmake --build build/
